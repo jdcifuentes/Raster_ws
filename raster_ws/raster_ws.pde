@@ -12,6 +12,7 @@ TimingTask spinningTask;
 boolean yDirection;
 // scaling is a power of 2
 int n = 4;
+int anti = 1;
 
 // 2. Hints
 boolean triangleHint = true;
@@ -23,10 +24,10 @@ String renderer = P3D;
 
 void setup() {
   //use 2^n to change the dimensions
-  size(1024, 1024, renderer);
+  size(1024, 810, renderer);
   scene = new Scene(this);
   if (scene.is3D())
-    scene.setType(Scene.Type.ORTHOGRAPHIC);
+  scene.setType(Scene.Type.ORTHOGRAPHIC);
   scene.setRadius(width/2);
   scene.fitBallInterpolation();
 
@@ -44,7 +45,7 @@ void setup() {
     @Override
     public void execute() {
       scene.eye().orbit(scene.is2D() ? new Vector(0, 0, 1) :
-        yDirection ? new Vector(0, 1, 0) : new Vector(1, 0, 0), PI / 100);
+      yDirection ? new Vector(0, 1, 0) : new Vector(1, 0, 0), PI / 100);
     }
   };
   scene.registerTask(spinningTask);
@@ -60,9 +61,9 @@ void draw() {
   background(0);
   stroke(0, 255, 0);
   if (gridHint)
-    scene.drawGrid(scene.radius(), (int)pow(2, n));
+  scene.drawGrid(scene.radius(), (int)pow(2, n));
   if (triangleHint)
-    drawTriangleHint();
+  drawTriangleHint();
   pushMatrix();
   pushStyle();
   scene.applyTransformation(frame);
@@ -76,12 +77,80 @@ void draw() {
 void triangleRaster() {
   // frame.location converts points from world to frame
   // here we convert v1 to illustrate the idea
-  if (debug) {
-    pushStyle();
-    stroke(255, 255, 0, 125);
-    point(round(frame.location(v1).x()), round(frame.location(v1).y()));
-    popStyle();
+
+  pushStyle();
+  noStroke();
+  fill(255, 255, 0, 125);
+  // stroke(255, 0, 0, 125);
+  // point(frame.location(v1).x(), frame.location(v1).y());
+  // stroke(0, 255, 0, 125);
+  // point(frame.location(v2).x(), frame.location(v2).y());
+  // stroke(0, 0, 255, 125);
+  // point(frame.location(v3).x(), frame.location(v3).y());
+
+  int potencia = (int)Math.pow(2, n-1);
+  for(float i = - potencia; i < potencia; i++){
+    for(float j = - potencia; j <= potencia; j++){
+      Vector p = new Vector(i+0.5, j+0.5);
+      if(isInside(p)) {
+        colorPixel(p, antiAliasing(i,j));
+        rect(i, j, 1, 1);
+      }
+    }
   }
+
+  popStyle();
+}
+
+float antiAliasing(float x, float y){
+  float pixelWidth = 1/(anti*1.0);
+  int subPixels=0;
+  for(int i=0; i < anti;i++){
+    for(int j = 0; j < anti ;j++){
+      float xX = x + pixelWidth * i;
+      float yY = y + pixelWidth * j;
+      Vector subPixel = new Vector(xX,yY);
+      if(isInside(subPixel)){
+        subPixels +=1;
+      }
+    }
+  }
+
+  float antialiasing = Math.round(255*(subPixels/(1.0 * anti * anti)));;
+  return antialiasing;
+}
+
+void colorPixel(Vector p, float antiali) {
+  Float color_1 = edgeFunction(frame.location(v2), frame.location(v3), p);
+  Float color_3 = edgeFunction(frame.location(v1), frame.location(v2), p);
+  Float color_2 = edgeFunction(frame.location(v3), frame.location(v1), p);
+
+  Float totalArea = edgeFunction(frame.location(v1), frame.location(v2), frame.location(v3));
+
+  // color_1 /= totalArea;
+  // color_2 /= totalArea;
+  // color_3 /= totalArea;
+  color_1 /= totalArea;
+  color_2 /= totalArea;
+  color_3 /= totalArea;
+
+  fill(255*color_1, 255*color_2, 255*color_3,antiali);
+}
+
+boolean isInside(Vector p) {
+  boolean e1 = edgeFunction(frame.location(v1), frame.location(v2), p) >= 0;
+  boolean e2 = edgeFunction(frame.location(v2), frame.location(v3), p) >= 0;
+  boolean e3 = edgeFunction(frame.location(v3), frame.location(v1), p) >= 0;
+
+  return (e1 && e2 && e3) || (!e1 && !e2 && !e3);
+}
+
+float edgeFunction(Vector a, Vector b, Vector c) {
+  float ax = a.x(), ay = a.y();
+  float bx = b.x(),  by = b.y();
+  float cx = c.x(), cy = c.y();
+
+  return (cx - ax) * (by - ay) - (cy - ay) * (bx - ax);
 }
 
 void randomizeTriangle() {
@@ -108,11 +177,11 @@ void drawTriangleHint() {
 
 void keyPressed() {
   if (key == 'g')
-    gridHint = !gridHint;
+  gridHint = !gridHint;
   if (key == 't')
-    triangleHint = !triangleHint;
+  triangleHint = !triangleHint;
   if (key == 'd')
-    debug = !debug;
+  debug = !debug;
   if (key == '+') {
     n = n < 7 ? n+1 : 2;
     frame.setScaling(width/pow( 2, n));
@@ -122,12 +191,18 @@ void keyPressed() {
     frame.setScaling(width/pow( 2, n));
   }
   if (key == 'r')
-    randomizeTriangle();
+  randomizeTriangle();
   if (key == ' ')
-    if (spinningTask.isActive())
-      spinningTask.stop();
-    else
-      spinningTask.run(20);
+  if (spinningTask.isActive())
+  spinningTask.stop();
+  else
+  spinningTask.run(20);
   if (key == 'y')
-    yDirection = !yDirection;
+  yDirection = !yDirection;
+  if (key == 'i'){
+  anti = anti*2;
+    if (anti > 8){
+      anti=1;
+    }
+  }
 }

@@ -1,3 +1,4 @@
+
 # Taller raster
 
 ## Propósito
@@ -31,11 +32,27 @@ Complete la tabla:
 
 | Integrante | github nick |
 |------------|-------------|
-|            |             |
+|Miguel Ángel Tovar Onofre | [MikeAngelo007](https://github.com/MikeAngelo007) |
+|Yeliana Andrea Torres Medina | [Yelis3](https://github.com/Yelis3)|
+|José Daniel Cifuentes Guarnizo | [jdcifuentes](https://github.com/jdcifuentes)|
 
 ## Discusión
 
-Describa los resultados obtenidos. En el caso de anti-aliasing describir las técnicas exploradas, citando las referencias.
+Se logró la implementación de la función *triangleRaster* usando la función edgeFunction.
+
+> (cx - ax) * (by - ay) - (cy - ay) * (bx - ax)
+
+Haciendo uso de las coordenadas baricéntricas.
+
+En el shading, se usa la función que calcula los valores RGB (intensidad) para cada píxel dependiendo de la distancia a los vértices y el valor de anti-aliasing aplicado.
+
+También se aplica un algoritmo de anti-aliasing, este divide el pixel en sub-regiones (4, 8, 16) y luego toma el promedio de los pixeles que estan dentro de la figura y se asigna la intensidad del color, con este se logra mejorar la representación rasterizada del triangulo. Oprimiendo la tecla i se logra cambiar el valor del el anti-aliasing.
+
+
+![Resultado](screenshotraster.jpg)
+
+
+
 
 ## Entrega
 
